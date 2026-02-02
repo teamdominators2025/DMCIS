@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMCIS | The Final Project Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Noto+Sans+Devanagari:wght@400;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif; scroll-behavior: smooth; overflow-x: hidden; background: #f8fafc; }
+        
+        #sparkle-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; overflow: hidden; }
+        .spark { position: absolute; background: #fbbf24; border-radius: 50%; opacity: 0; animation: rise 2.5s ease-out forwards; }
+        @keyframes rise { 0% { transform: translateY(110vh) scale(0); opacity: 1; } 100% { transform: translateY(-10vh) scale(1.2); opacity: 0; } }
+
+        .ticker-wrap { overflow: hidden; background: #0f172a; color: #38bdf8; padding: 10px 0; border-bottom: 1px solid #1e293b; }
+        .ticker-move { display: flex; white-space: nowrap; animation: ticker 45s linear infinite; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .hidden-lang { display: none !important; }
+        #feedback-sidebar { transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100; }
+        .timeline-line { position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; }
+        @media (min-width: 768px) { .timeline-line { left: 50%; transform: translateX(-50%); } }
+        
+        .pdf-container { width: 100%; height: 100%; border: none; min-height: 500px; }
+    </style>
+</head>
+<body class="text-slate-900">
+
+    <div id="sparkle-overlay"></div>
+
+    <div id="success-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl transform scale-90 transition-transform duration-300" id="modal-content">
+            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold mb-2 en">Response Received!</h3>
+            <h3 class="text-2xl font-extrabold mb-2 hi hidden-lang">प्रतिक्रिया प्राप्त हुई!</h3>
+            <p class="text-slate-500 text-sm mb-8 en">The DMCIS trio has received your feedback. We will review your submission shortly.</p>
+            <p class="text-slate-500 text-sm mb-8 hi hidden-lang">DMCIS टीम को आपकी प्रतिक्रिया मिल गई है। हम जल्द ही आपकी प्रस्तुति की समीक्षा करेंगे।</p>
+            <button onclick="closeModal()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-slate-800 transition en">Great, thanks!</button>
+            <button onclick="closeModal()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-slate-800 transition hi hidden-lang">ठीक है, धन्यवाद!</button>
+        </div>
+    </div>
+    <div id="feedback-sidebar" class="fixed top-0 right-0 w-full md:w-[450px] h-full bg-slate-50 shadow-2xl translate-x-full border-l border-slate-200 flex flex-col">
+    <div class="p-8 bg-white border-b border-slate-200">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-xl font-black en uppercase tracking-tighter">Response Dashboard</h3>
+            <h3 class="text-xl font-black hi hidden-lang uppercase tracking-tighter">प्रतिक्रिया डैशबोर्ड</h3>
+            <button onclick="toggleFeedback()" class="p-2 hover:bg-slate-100 rounded-full"><i data-lucide="x"></i></button>
+        </div>
+        <p class="text-[10px] font-bold text-blue-600 uppercase tracking-[0.2em] en">Active Monitoring Mode</p>
+        <p class="text-[10px] font-bold text-blue-600 uppercase tracking-[0.2em] hi hidden-lang">सक्रिय निगरानी मोड</p>
+    </div>
+
+    <div class="flex-grow overflow-y-auto p-6 space-y-4">
+        
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm hover:border-blue-400 transition group">
+            <div class="flex justify-between items-start mb-3">
+                <span class="px-3 py-1 bg-red-100 text-red-600 text-[9px] font-black uppercase rounded-full">Urgent</span>
+                <span class="text-[10px] font-bold text-slate-400">14 mins ago</span>
+            </div>
+            <h4 class="font-bold text-slate-900 mb-1">Amit Sharma</h4>
+            <p class="text-xs text-slate-500 mb-4 italic">"The real-time tracking map is freezing on mobile devices in the Rohini sector area."</p>
+            <div class="flex justify-between items-center pt-4 border-t border-slate-50">
+                <span class="text-[9px] font-bold uppercase text-slate-400">Technical Bug</span>
+                <button class="text-blue-600 text-[10px] font-bold uppercase hover:underline">Resolve →</button>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm hover:border-indigo-400 transition group">
+            <div class="flex justify-between items-start mb-3">
+                <span class="px-3 py-1 bg-indigo-100 text-indigo-600 text-[9px] font-black uppercase rounded-full">Proposal</span>
+                <span class="text-[10px] font-bold text-slate-400">2 hours ago</span>
+            </div>
+            <h4 class="font-bold text-slate-900 mb-1">Priya Verma</h4>
+            <p class="text-xs text-slate-500 mb-4 italic">"Can we add a feature to upload photos of broken street lights directly through the DMCIS portal?"</p>
+            <div class="flex justify-between items-center pt-4 border-t border-slate-50">
+                <span class="text-[9px] font-bold uppercase text-slate-400">Civic Suggestion</span>
+                <button class="text-blue-600 text-[10px] font-bold uppercase hover:underline">Acknowledge →</button>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm hover:border-green-400 transition group">
+            <div class="flex justify-between items-start mb-3">
+                <span class="px-3 py-1 bg-green-100 text-green-600 text-[9px] font-black uppercase rounded-full">Positive</span>
+                <span class="text-[10px] font-bold text-slate-400">5 hours ago</span>
+            </div>
+            <h4 class="font-bold text-slate-900 mb-1">Rahul Khanna</h4>
+            <p class="text-xs text-slate-500 mb-4 italic">"Great work on the dashboard! The transparency in Delhi's infrastructure projects is much appreciated."</p>
+            <div class="flex justify-between items-center pt-4 border-t border-slate-50">
+                <span class="text-[9px] font-bold uppercase text-slate-400">General Feedback</span>
+                <button class="text-blue-600 text-[10px] font-bold uppercase hover:underline">Archive →</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="p-6 bg-white border-t border-slate-200">
+        <button class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-slate-800 transition text-xs uppercase tracking-widest">
+            Export All Feedback (CSV)
+        </button>
+    </div>
+</div>
+        </form>
+    </div>
+
+    <div class="ticker-wrap uppercase">
+        <div class="ticker-move">
+            <span class="px-10 en text-red-400 font-black">● [ALERT] SECTOR-7 NODE TRAFFIC SPIKE: +45%</span>
+            <span class="px-10 hi hidden-lang text-red-400 font-black">● [चेतावनी] सेक्टर-7 नोड ट्रैफिक स्पाइक: +45%</span>
+            
+            <span class="px-10 en text-amber-400">● FIREWALL STATUS: ACTIVE & MONITORING</span>
+            <span class="px-10 hi hidden-lang text-amber-400">● फ़ायरवॉल स्थिति: सक्रिय और निगरानी</span>
+
+            <span class="px-10 en text-green-400">● SERVER LATENCY: 24ms (OPTIMAL)</span>
+            <span class="px-10 hi hidden-lang text-green-400">● सर्वर विलंबता: 24ms (इष्टतम)</span>
+            
+            <span class="px-10 en">● TICKETS: 12 OPEN | 85 RESOLVED</span>
+            <span class="px-10 hi hidden-lang">● टिकट: 12 खुले | 85 हल किए गए</span>
+
+            <span class="px-10 en">● CLOUD SYNC: VERIFIED BY TEAM DOMINATORS</span>
+            <span class="px-10 hi hidden-lang">● क्लाउड सिंक: टीम डोमिनेटर्स द्वारा सत्यापित</span>
+
+            <span class="px-10 en">● LOCATION: BHARAT MANDAPAM MAIN HUB - ONLINE</span>
+            <span class="px-10 hi hidden-lang">● स्थान: भारत मंडपम मुख्य हब - ऑनलाइन</span>
+        </div>
+    </div>
+
+    <nav class="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-slate-100 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md overflow-hidden border border-slate-100">
+                    <img src="dominators logo.png" alt="DMCIS Logo" class="w-full h-full object-contain" onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=DMCIS';">
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-extrabold text-2xl tracking-tighter leading-none">DMCIS</span>
+                    <span class="text-[8px] font-bold text-blue-600 tracking-[0.2em] uppercase en">Delhi Govt</span>
+                    <span class="text-[8px] font-bold text-blue-600 tracking-[0.2em] uppercase hi hidden-lang">दिल्ली सरकार</span>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="switchLang()" class="bg-slate-100 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest text-blue-600 border border-blue-100">
+                    <span id="lang-label">Hindi</span>
+                </button>
+                <button onclick="toggleFeedback()" class="bg-blue-600 text-white px-5 py-2 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-700 transition">
+                    <span class="en">Feedback Desk</span>
+                    <span class="hi hidden-lang">प्रतिक्रिया डेस्क</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="max-w-7xl mx-auto px-6 py-16 text-center">
+        <div class="flex justify-center mb-6">
+            <div class="p-3 bg-white border border-slate-200 rounded-3xl shadow-sm inline-block">
+                <img src="QR CODE.png" alt="System QR" class="w-24 h-24">
+                <p class="text-[9px] font-bold mt-2 text-slate-400 uppercase tracking-widest en">Scan to Open</p>
+                <p class="text-[9px] font-bold mt-2 text-slate-400 uppercase tracking-widest hi hidden-lang">स्कैन करें</p>
+            </div>
+        </div>
+        
+        <h1 class="text-6xl md:text-8xl font-extrabold tracking-tighter mb-6 en leading-[0.9]">Makers & <br><span class="text-blue-600">Response Hub.</span></h1>
+        <h1 class="text-6xl md:text-8xl font-extrabold tracking-tighter mb-6 hi hidden-lang leading-[0.9]">निर्माता और <br><span class="text-blue-600">प्रतिक्रिया केंद्र।</span></h1>
+        <p class="text-slate-500 max-w-2xl mx-auto text-lg mt-6 en">A digital showcase of the DMCIS infrastructure monitoring system, presented for the 2026 Grand Finale at Bharat Mandapam.</p>
+        <p class="text-slate-500 max-w-2xl mx-auto text-lg mt-6 hi hidden-lang">भारत मंडपम में 2026 ग्रैंड फिनाले के लिए प्रस्तुत DMCIS बुनियादी ढांचा निगरानी प्रणाली का एक डिजिटल प्रदर्शन।</p>
+    </header>
+
+    <section class="max-w-7xl mx-auto px-6 py-10">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white border border-slate-100 p-6 rounded-[2rem] shadow-sm text-center">
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 en">Minister Visits</p>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 hi hidden-lang">मंत्री का दौरा</p>
+                <h4 class="text-3xl font-black text-slate-900">14</h4>
+            </div>
+            <div class="bg-white border border-slate-100 p-6 rounded-[2rem] shadow-sm text-center">
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 en">Zonal Audits</p>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 hi hidden-lang">जोनल ऑडिट</p>
+                <h4 class="text-3xl font-black text-blue-600">128</h4>
+            </div>
+            <div class="bg-white border border-slate-100 p-6 rounded-[2rem] shadow-sm text-center">
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 en">Citizen Engagements</p>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 hi hidden-lang">नागरिक जुड़ाव</p>
+                <h4 class="text-3xl font-black text-indigo-600">4.2k</h4>
+            </div>
+            <div class="bg-white border border-slate-100 p-6 rounded-[2rem] shadow-sm text-center">
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 en">Data Uptime</p>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 hi hidden-lang">डेटा अपटाइम</p>
+                <h4 class="text-3xl font-black text-green-500">99.9%</h4>
+            </div>
+        </div>
+    </section>
+
+    <section class="max-w-5xl mx-auto px-6 py-20">
+        <div class="bg-slate-900 rounded-[3rem] p-4 shadow-2xl overflow-hidden aspect-video relative group">
+            <iframe class="w-full h-full rounded-[2.5rem]" src="Testimony for dmcis.mp4" frameborder="0" allowfullscreen></iframe>
+            <div class="absolute bottom-10 left-10 text-white pointer-events-none group-hover:opacity-0 transition">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] text-blue-400 mb-1 en">Live Testimony</p>
+                <p class="text-xs font-bold uppercase tracking-[0.3em] text-blue-400 mb-1 hi hidden-lang">लाइव गवाही</p>
+                <h3 class="text-2xl font-bold en">Citizen & Officer Experience</h3>
+                <h3 class="text-2xl font-bold hi hidden-lang">नागरिक और अधिकारी अनुभव</h3>
+            </div>
+        </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <h2 class="text-3xl font-bold mb-12 text-center italic en">Project Documentation</h2>
+        <h2 class="text-3xl font-bold mb-12 text-center italic hi hidden-lang">परियोजना दस्तावेज़ीकरण</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="h-[600px] bg-white rounded-[2rem] shadow-xl border overflow-hidden flex flex-col">
+                <div class="p-4 bg-slate-900 text-white text-[10px] font-bold uppercase flex justify-between">
+                    <span class="en">PPT Solution</span><span class="hi hidden-lang">पीपीटी समाधान</span>
+                    <i data-lucide="presentation" class="w-3 h-3"></i>
+                </div>
+                <iframe src="Hack4Delhi Official PPT Template.pdf" class="pdf-container flex-grow"></iframe>
+            </div>
+            <div class="h-[600px] bg-white rounded-[2rem] shadow-xl border overflow-hidden flex flex-col">
+                <div class="p-4 bg-slate-900 text-white text-[10px] font-bold uppercase flex justify-between">
+                    <span class="en">E-Magazine</span><span class="hi hidden-lang">ई-पत्रिका</span>
+                    <i data-lucide="book-open" class="w-3 h-3"></i>
+                </div>
+                <iframe src="E-MAGAZINE  DMCIS.mp4" class="flex-grow w-full h-full object-cover"></iframe>
+            </div>
+            <div class="h-[600px] bg-white rounded-[2rem] shadow-xl border overflow-hidden flex flex-col">
+                <div class="p-4 bg-slate-900 text-white text-[10px] font-bold uppercase flex justify-between">
+                    <span class="en">Hardware Brochure</span><span class="hi hidden-lang">हार्डवेयर विवरणिका</span>
+                    <i data-lucide="cpu" class="w-3 h-3"></i>
+                </div>
+                <iframe src="DMCIS-HARDWARE FLIPBOOK.mp4" class="pdf-container flex-grow"></iframe>
+            </div>
+        </div>
+    </section>
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-black tracking-tight en">Project Gallery</h2>
+            <h2 class="text-4xl font-black tracking-tight hi hidden-lang">परियोजना गैलरी</h2>
+            <p class="text-slate-500 mt-2 en">Snapshots of our progress and implementation.</p>
+            <p class="text-slate-500 mt-2 hi hidden-lang">हमारी प्रगति और कार्यान्वयन की झलकियां।</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-6 h-[600px]">
+            <div class="md:col-span-3 md:row-span-2 group relative overflow-hidden rounded-[2.5rem] shadow-lg border border-slate-100">
+                <img src="img 1.jpeg" alt="Implementation" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800';">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-8">
+                    <p class="text-white font-bold en">On-site system testing</p>
+                    <p class="text-white font-bold hi hidden-lang">ऑन-साइट सिस्टम परीक्षण</p>
+                </div>
+            </div>
+
+            <div class="md:col-span-3 group relative overflow-hidden rounded-[2.5rem] shadow-lg border border-slate-100">
+                <img src="img 2.jpeg" alt="Team Work" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800';">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                    <p class="text-white text-sm font-bold en">Collaboration Hub</p>
+                    <p class="text-white text-sm font-bold hi hidden-lang">सहयोग केंद्र</p>
+                </div>
+            </div>
+
+            <div class="md:col-span-1 group relative overflow-hidden rounded-[2.5rem] shadow-lg border border-slate-100">
+                <img src="img 3.jpeg" alt="Hardware" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=400';">
+            </div>
+
+            <div class="md:col-span-1 group relative overflow-hidden rounded-[2.5rem] shadow-lg border border-slate-100">
+                <img src="img 4.jpeg" alt="Dashboard" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=400';">
+            </div>
+
+            <div class="md:col-span-1 group relative overflow-hidden rounded-[2.5rem] shadow-lg border border-slate-100">
+                <img src="img 5.jpeg" alt="Presentation" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=400';">
+            </div>
+        </div>
+    </section>
+    <section class="max-w-7xl mx-auto px-6 py-24 relative">
+        <div class="timeline-line"></div>
+        <div class="relative flex flex-col md:flex-row items-center mb-24">
+            <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1">
+                <h4 class="text-blue-600 font-bold">19 Dec 2025</h4>
+                <p class="font-bold text-lg en">Inception & Template</p>
+                <p class="font-bold text-lg hi hidden-lang">शुरुआत और टेम्पलेट</p>
+            </div>
+            <div class="w-10 h-10 bg-blue-600 rounded-full border-4 border-white z-10 order-1 md:order-2"></div>
+            <div class="md:w-1/2 order-3"></div>
+        </div>
+        <div class="relative flex flex-col md:flex-row items-center mb-24">
+            <div class="md:w-1/2 order-3 md:order-1"></div>
+            <div class="w-10 h-10 bg-indigo-600 rounded-full border-4 border-white z-10 order-1 md:order-2"></div>
+            <div class="md:w-1/2 md:pl-12 order-2">
+                <h4 class="text-indigo-600 font-bold">12 Jan 2026</h4>
+                <p class="font-bold text-lg en">Semi-Finale Showcase</p>
+                <p class="font-bold text-lg hi hidden-lang">सेमीफाइनल प्रदर्शन</p>
+            </div>
+        </div>
+        <div class="relative flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1">
+                <h4 class="text-green-500 font-bold">28 - 29 March 2026</h4>
+                <p class="font-bold text-lg en">Grand Finale</p>
+                <p class="font-bold text-lg hi hidden-lang">भव्य समापन</p>
+                <p class="text-slate-500 text-sm en">Bharat Mandapam, New Delhi.</p>
+                <p class="text-slate-500 text-sm hi hidden-lang">भारत मंडपम, नई दिल्ली।</p>
+            </div>
+            <div class="w-10 h-10 bg-green-500 rounded-full border-4 border-white z-10 order-1 md:order-2 animate-pulse"></div>
+            <div class="md:w-1/2 order-3"></div>
+        </div>
+    </section>
+    <section class="max-w-7xl mx-auto px-6 py-24 bg-white rounded-[3rem] border border-slate-100 shadow-sm mb-20">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-black tracking-tight en">Our Journey & Reflections</h2>
+            <h2 class="text-4xl font-black tracking-tight hi hidden-lang">हमारी यात्रा और विचार</h2>
+            <p class="text-slate-500 mt-4 en">The stories behind the system.</p>
+            <p class="text-slate-500 mt-4 hi hidden-lang">प्रणाली के पीछे की कहानियाँ।</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-50 mb-6 shadow-inner">
+                    <img src="swikriti final.png" alt="Swikriti" class="w-full h-full object-cover" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Swikriti';">
+                </div>
+                <h3 class="text-xl font-bold">Swikriti Singh</h3>
+                <p class="text-blue-600 text-xs font-bold uppercase tracking-widest mb-4 en">Frontend Architect</p>
+                <p class="text-blue-600 text-xs font-bold uppercase tracking-widest mb-4 hi hidden-lang">फ्रंटएंड आर्किटेक्ट</p>
+                
+                <div class="bg-slate-50 p-6 rounded-3xl mb-6 relative">
+                    <i data-lucide="quote" class="absolute -top-3 -left-1 w-6 h-6 text-blue-200"></i>
+                    <p class="text-sm text-slate-600 italic leading-relaxed en">"Designing the DMCIS interface was a challenge in balancing complex data with citizen accessibility. Seeing the vision come alive at Bharat Mandapam is surreal."</p>
+                    <p class="text-sm text-slate-600 italic leading-relaxed hi hidden-lang">"DMCIS इंटरफ़ेस को डिज़ाइन करना जटिल डेटा और नागरिक पहुंच के बीच संतुलन बनाने की एक चुनौती थी। भारत मंडपम में विजन को साकार होते देखना अद्भुत है।"</p>
+                </div>
+
+                <div class="flex gap-4">
+                    <a href="https://github.com/swikritidominators/DMCIS-FRONTEND" class="p-2 bg-slate-100 rounded-full hover:bg-blue-100 transition"><i data-lucide="github" class="w-5 h-5"></i></a>
+                    <a href="mailto:singhswikriti1@gmail.com" class="p-2 bg-slate-100 rounded-full hover:bg-blue-100 transition"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center text-center">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-indigo-50 mb-6 shadow-inner">
+                    <img src="sonali final.png" alt="Sonali" class="w-full h-full object-cover" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Sonali';">
+                </div>
+                <h3 class="text-xl font-bold">Sonali Kumari Jha</h3>
+                <p class="text-indigo-600 text-xs font-bold uppercase tracking-widest mb-4 en">Backend Developer</p>
+                <p class="text-indigo-600 text-xs font-bold uppercase tracking-widest mb-4 hi hidden-lang">लीड बैकएंड डेवलपर</p>
+                
+                <div class="bg-slate-50 p-6 rounded-3xl mb-6 relative">
+                    <i data-lucide="quote" class="absolute -top-3 -left-1 w-6 h-6 text-indigo-200"></i>
+                    <p class="text-sm text-slate-600 italic leading-relaxed en">"Scaling the response hub to handle city-wide requests taught me the power of robust backend logic. This journey has been the ultimate learning curve."</p>
+                    <p class="text-sm text-slate-600 italic leading-relaxed hi hidden-lang">"पूरे शहर के अनुरोधों को संभालने के लिए रिस्पॉन्स हब को स्केलिंग करने से मुझे मजबूत बैकएंड लॉजिक की शक्ति का पता चला। यह यात्रा सीखने का एक शानदार अनुभव रही है।"</p>
+                </div>
+
+                <div class="flex gap-4">
+                    <a href="https://github.com/Sonali8706/DMCIS-Backend" class="p-2 bg-slate-100 rounded-full hover:bg-indigo-100 transition"><i data-lucide="github" class="w-5 h-5"></i></a>
+                    <a href="mailto:kumarisonalijha@gmail.com" class="p-2 bg-slate-100 rounded-full hover:bg-indigo-100 transition"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center text-center">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-cyan-50 mb-6 shadow-inner">
+                    <img src="ria final.png" alt="Ria" class="w-full h-full object-cover" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Ria';">
+                </div>
+                <h3 class="text-xl font-bold">Ria Saraswat</h3>
+                <p class="text-cyan-600 text-xs font-bold uppercase tracking-widest mb-4 en">Database & Cloud Ops</p>
+                <p class="text-cyan-600 text-xs font-bold uppercase tracking-widest mb-4 hi hidden-lang">डेटाबेस और क्लाउड ऑप्स</p>
+                
+                <div class="bg-slate-50 p-6 rounded-3xl mb-6 relative">
+                    <i data-lucide="quote" class="absolute -top-3 -left-1 w-6 h-6 text-cyan-200"></i>
+                    <p class="text-sm text-slate-600 italic leading-relaxed en">"Managing real-time infrastructure data required precision. The transition from Civic Centre to Bharat Mandapam symbolizes our growth as a team."</p>
+                    <p class="text-sm text-slate-600 italic leading-relaxed hi hidden-lang">"वास्तविक समय के बुनियादी ढांचे के डेटा को प्रबंधित करने के लिए सटीकता की आवश्यकता थी। सिविक सेंटर से भारत मंडपम तक का सफर एक टीम के रूप में हमारी प्रगति का प्रतीक है।"</p>
+                </div>
+
+                <div class="flex gap-4">
+                    <a href="https://github.com/Dare-TechieZ" class="p-2 bg-slate-100 rounded-full hover:bg-cyan-100 transition"><i data-lucide="github" class="w-5 h-5"></i></a>
+                    <a href="mailto:riasaraswat2020@gmail.com" class="p-2 bg-slate-100 rounded-full hover:bg-cyan-100 transition"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-20 pt-12 border-t border-slate-100 text-center">
+            <h4 class="text-sm font-black uppercase tracking-[0.3em] text-slate-400 mb-6 en">Official Team Channels</h4>
+            <h4 class="text-sm font-black uppercase tracking-[0.3em] text-slate-400 mb-6 hi hidden-lang">आधिकारिक टीम चैनल</h4>
+            <div class="flex flex-wrap justify-center gap-8">
+                <a href="https://github.com/teamdominators2025" class="flex items-center gap-3 group">
+                    <div class="p-3 bg-slate-900 text-white rounded-2xl group-hover:scale-110 transition"><i data-lucide="github" class="w-6 h-6"></i></div>
+                    <div class="text-left">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase leading-none">GitHub Org</p>
+                        <p class="text-sm font-bold">@teamdominators2025</p>
+                    </div>
+                </a>
+                <a href="mailto:teamdominators2025@gmail.com" class="flex items-center gap-3 group">
+                    <div class="p-3 bg-blue-600 text-white rounded-2xl group-hover:scale-110 transition"><i data-lucide="mail" class="w-6 h-6"></i></div>
+                    <div class="text-left">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase leading-none">Email Support</p>
+                        <p class="text-sm font-bold">teamdominators2025@gmail.com</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+    <footer class="bg-slate-950 text-white py-16 px-6 text-center">
+        <h2 class="text-2xl font-bold mb-8 en">Reach Out to the Team</h2>
+        <h2 class="text-2xl font-bold mb-8 hi hidden-lang">टीम से संपर्क करें</h2>
+        <p class="text-[10px] text-slate-600 tracking-[0.4em] uppercase">© 2026 DMCIS DELHI | BUILT FOR THE CITY</p>
+    </footer>
+
+    <script>
+        function toggleFeedback() { document.getElementById('feedback-sidebar').classList.toggle('translate-x-full'); }
+
+        // START: CORRECTED FEEDBACK HANDLER
+        function handleFeedback() {
+            toggleFeedback();
+            const modal = document.getElementById('success-modal');
+            const content = document.getElementById('modal-content');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => { 
+                modal.classList.add('opacity-100'); 
+                content.classList.replace('scale-90', 'scale-100');
+            }, 10);
+            
+            document.getElementById('feedback-form').reset();
+            startSparkles();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('success-modal');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('opacity-100');
+            content.classList.replace('scale-100', 'scale-90');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+        // END: CORRECTED FEEDBACK HANDLER
+
+        function startSparkles() {
+            const container = document.getElementById('sparkle-overlay');
+            for(let i = 0; i < 40; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'spark';
+                spark.style.left = Math.random() * 100 + 'vw';
+                spark.style.width = Math.random() * 6 + 2 + 'px';
+                spark.style.height = spark.style.width;
+                spark.style.animationDelay = Math.random() * 1.5 + 's';
+                container.appendChild(spark);
+            }
+            setTimeout(() => container.innerHTML = '', 4500);
+        }
+
+        let currentLang = 'en';
+        function switchLang() {
+            const ens = document.querySelectorAll('.en');
+            const his = document.querySelectorAll('.hi');
+            const label = document.getElementById('lang-label');
+            
+            if(currentLang === 'en') {
+                ens.forEach(e => e.classList.add('hidden-lang'));
+                his.forEach(e => e.classList.remove('hidden-lang'));
+                label.innerText = "English"; 
+                currentLang = 'hi';
+            } else {
+                his.forEach(e => e.classList.add('hidden-lang'));
+                ens.forEach(e => e.classList.remove('hidden-lang'));
+                label.innerText = "Hindi"; 
+                currentLang = 'en';
+            }
+        }
+        window.onload = () => { lucide.createIcons(); };
+    </script>
+</body>
+</html>
